@@ -393,7 +393,7 @@ def result(a: ast) -> float:
         if a.children[0] in var.keys():
             return var[a.children[0]]
         else:
-            raise SyntaxError(f'unassigned variable {a.children[0]}')
+            var[a.children[0]] = 0.0
 
 while True:
     try:
