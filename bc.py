@@ -69,6 +69,24 @@ def lex(s: str) -> list[token]:
             num = s[i:end]
             tokens.append(token('num', convert_num(num)))
             i = end
+        elif s[i:i+2] == '+=':
+            tokens.append(token('sym', '+='))
+            i += 2
+        elif s[i:i+2] == '-=':
+            tokens.append(token('sym', '-='))
+            i += 2
+        elif s[i:i+2] == '*=':
+            tokens.append(token('sym', '*='))
+            i += 2
+        elif s[i:i+2] == '/=':
+            tokens.append(token('sym', '/='))
+            i += 2
+        elif s[i:i+2] == '%=':
+            tokens.append(token('sym', '%='))
+            i += 2
+        elif s[i:i+2] == '^=':
+            tokens.append(token('sym', '^='))
+            i += 2
         elif s[i:i+2] == '++':
             tokens.append(token('sym', '++'))
             i += 2
@@ -173,6 +191,7 @@ def equal(ts: list[token], i: int) -> tuple[ast, int]:
         lhs = ast('=', lhs, rhs)
 
     return lhs, i
+
 
 def disj(ts: list[token], i: int) -> tuple[ast, int]:
     """
@@ -290,12 +309,15 @@ def add(ts: list[token], i: int) -> tuple[ast, int]:
 
     lhs, i = sub(ts, i)
 
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '+':
-        rhs, i = sub(ts, i+1)
-        lhs = ast('+', lhs, rhs)
+    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '+' or ts[i].val == '+='):
+        if ts[i].val == '+':
+            rhs, i = sub(ts, i+1)
+            lhs = ast('+', lhs, rhs)
+        elif ts[i].val == '+=':
+            rhs, i = sub(ts, i+1)
+            lhs = ast('=',lhs,ast('+', lhs, rhs))
 
     return lhs, i
-
 
 def sub(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
@@ -303,9 +325,13 @@ def sub(ts: list[token], i: int) -> tuple[ast, int]:
 
     lhs, i = mul(ts, i)
 
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '-':
-        rhs, i = mul(ts, i+1)
-        lhs = ast('-', lhs, rhs)
+    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '-' or ts[i].val == '-='):
+        if ts[i].val == '-':
+            rhs, i = mul(ts, i+1)
+            lhs = ast('-', lhs, rhs)
+        elif ts[i].val == '-=':
+            rhs, i = mul(ts, i+1)
+            lhs = ast('=',lhs,ast('-', lhs, rhs))
 
     return lhs, i
 
@@ -315,9 +341,13 @@ def mul(ts: list[token], i: int) -> tuple[ast, int]:
 
     lhs, i = div(ts, i)
 
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '*':
-        rhs, i = div(ts, i+1)
-        lhs = ast('*', lhs, rhs)
+    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '*' or ts[i].val == '*='):
+        if ts[i].val == '*':
+            rhs, i = div(ts, i+1)
+            lhs = ast('*', lhs, rhs)
+        elif ts[i].val == '*=':
+            rhs, i = div(ts, i+1)
+            lhs = ast('=',lhs,ast('*', lhs, rhs))
 
     return lhs, i
 
@@ -327,9 +357,13 @@ def div(ts: list[token], i: int) -> tuple[ast, int]:
 
     lhs, i = remainder(ts, i)
 
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '/':
-        rhs, i = remainder(ts, i+1)
-        lhs = ast('/', lhs, rhs)
+    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '/' or ts[i].val == '/='):
+        if ts[i].val == '/':
+            rhs, i = remainder(ts, i+1)
+            lhs = ast('/', lhs, rhs)
+        elif ts[i].val == '/=':
+            rhs, i = remainder(ts, i+1)
+            lhs = ast('=',lhs,ast('/', lhs, rhs))
 
     return lhs, i
 
@@ -337,11 +371,27 @@ def remainder(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
         raise SyntaxError('expected subtraction, found EOF')
 
+    lhs, i = exp_eq(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '%' or ts[i].val == '%='):
+        if ts[i].val == '%':
+            rhs, i = exp_eq(ts, i+1)
+            lhs = ast('%', lhs, rhs)
+        elif ts[i].val == '%=':
+            rhs, i = exp_eq(ts, i+1)
+            lhs = ast('=',lhs,ast('%', lhs, rhs))
+
+    return lhs, i
+
+def exp_eq(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected subtraction, found EOF')
+
     lhs, i = exp(ts, i)
 
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '%':
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '^=':
         rhs, i = exp(ts, i+1)
-        lhs = ast('%', lhs, rhs)
+        lhs = ast('=',lhs,ast('^', lhs, rhs))
 
     return lhs, i
 
@@ -363,16 +413,6 @@ def exp(ts: list[token], i: int) -> tuple[ast, int]:
         la = ast('^',temp[t-1],la)
         t = t-1
     return la, i
-    # if i >= len(ts):
-    #     raise SyntaxError('expected subtraction, found EOF')
-
-    # lhs, i = disj(ts, i)
-
-    # while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '^':
-    #     rhs, i = disj(ts, i+1)
-    #     lhs = ast('^', lhs, rhs)
-
-    # return lhs, i
 
 def neg(ts: list[token], i: int) -> tuple[ast, int]:
     """
@@ -526,6 +566,48 @@ while True:
     try:
         user_input = input()
         output = ""
+        if '/*' in user_input:
+            a = user_input.split('/*')
+            if a[0] != '':
+                if re.match(r'^\s*print\s+\w*',a[0],re.IGNORECASE):
+                    string = re.sub(r"^\s*print\s+", "", a[0].rstrip(), re.IGNORECASE)
+                    test = string.split(",")
+                    for i in range(len(test)):
+                        temp = parse(test[i])
+                        output += f"{result(temp)} "
+                    print(output.strip())
+                else:
+                    result(parse(user_input))
+            output = ""
+            while '*/' not in user_input:
+                user_input = input()
+            c = user_input.split('*/')
+            if c[1] != '':
+                if re.match(r'^\s*print\s+\w*',c[1],re.IGNORECASE):
+                    string = re.sub(r"^\s*print\s+", "", c[1].rstrip(), re.IGNORECASE)
+                    test = string.split(",")
+                    for i in range(len(test)):
+                        temp = parse(test[i])
+                        output += f"{result(temp)} "
+                    print(output.strip())
+                else:
+                    result(parse(user_input))
+            output = ""
+            user_input = input()
+        if '#' in user_input:
+            b = user_input.split('#')
+            if b[0] != '':
+                if re.match(r'^\s*print\s+\w*',b[0],re.IGNORECASE):
+                    string = re.sub(r"^\s*print\s+", "", b[0].rstrip(), re.IGNORECASE)
+                    test = string.split(",")
+                    for i in range(len(test)):
+                        temp = parse(test[i])
+                        output += f"{result(temp)} "
+                    print(output.strip())
+                else:
+                    result(parse(user_input))
+            output = ""
+            user_input = input()
         if re.match(r'^\s*print\s+\w*',user_input,re.IGNORECASE):
             string = re.sub(r"^\s*print\s+", "", user_input.rstrip(), re.IGNORECASE)
             test = string.split(",")
