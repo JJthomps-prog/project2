@@ -373,9 +373,9 @@ def result(a: ast) -> float:
     elif a.typ == '-' and len(a.children) == 1:
             return -result(a.children[0])
     elif a.typ == '++' and len(a.children) == 1:
-        return result(ast('+',a.children[0],ast('val',1)))
+        return result(ast('=',a.children[0],ast('+',a.children[0],ast('val',1))))
     elif a.typ == '--' and len(a.children) == 1:
-        return result(ast('-',a.children[0],ast('val',1)))
+        return result(ast('=',a.children[0],ast('-',a.children[0],ast('val',1))))
     elif a.typ == '*':
         return result(a.children[0]) * result(a.children[1])
     elif a.typ == '/':
