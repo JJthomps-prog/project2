@@ -148,10 +148,10 @@ def equal(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
         raise SyntaxError('expected addition, found EOF')
 
-    lhs, i = add(ts, i)
+    lhs, i = disj(ts, i)
 
     while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '=':
-        rhs, i = add(ts, i+1)
+        rhs, i = disj(ts, i+1)
         lhs = ast('=', lhs, rhs)
 
     return lhs, i
@@ -261,7 +261,7 @@ def exp(ts: list[token], i: int) -> tuple[ast, int]:
     
     temp = []
     
-    lhs, i = disj(ts, i)
+    lhs, i = neg(ts, i)
     temp.append(lhs)
 
     while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '^':
@@ -329,7 +329,7 @@ def atom(ts: list[token], i: int) -> tuple[ast, int]:
     elif t.typ == 'num':
         return ast('val', t.val), i + 1
     elif t.typ == 'sym' and t.val == '(':
-        a, i = add(ts, i + 1)
+        a, i = disj(ts, i + 1)
 
         if i >= len(ts):
             raise SyntaxError(f'expeprintcted right paren, got EOF')
