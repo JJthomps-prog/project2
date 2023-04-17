@@ -394,6 +394,7 @@ def result(a: ast) -> float:
             return var[a.children[0]]
         else:
             var[a.children[0]] = 0.0
+            return var[a.children[0]]
 
 while True:
     try:
