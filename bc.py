@@ -406,7 +406,9 @@ while True:
                 temp = parse(test[i])
                 output += f"{result(temp)} "
             print(output)
+        elif user_input == '':
+            continue
         else:
             result(parse(user_input))
-    except:
-        continue
+    except EOFError:
+        break
