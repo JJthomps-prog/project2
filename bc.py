@@ -156,6 +156,44 @@ def equal(ts: list[token], i: int) -> tuple[ast, int]:
 
     return lhs, i
 
+def disj(ts: list[token], i: int) -> tuple[ast, int]:
+    """
+    >>> parse('true || false')
+    ast('||', ast('val', True), ast('val', False))
+    """
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = conj(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '||':
+        rhs, i = conj(ts, i+1)
+        lhs = ast('||', lhs, rhs)
+
+    return lhs, i
+
+def conj(ts: list[token], i: int) -> tuple[ast, int]:
+    """
+    >>> parse('true && false')
+    ast('&&', ast('val', True), ast('val', False))
+    >>> parse('!x && (a && !false)')
+    ast('&&', ast('!', ast('var', 'x')), ast('&&', ast('var', 'a'), ast('!', ast('val', False))))
+    >>> parse('!x && a && !false')
+    ast('&&', ast('&&', ast('!', ast('var', 'x')), ast('var', 'a')), ast('!', ast('val', False)))
+    >>> parse('x || !y && z')
+    ast('||', ast('var', 'x'), ast('&&', ast('!', ast('var', 'y')), ast('var', 'z')))
+    """
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = add(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '&&':
+        rhs, i = add(ts, i+1)
+        lhs = ast('&&', lhs, rhs)
+
+    return lhs, i
+
 def add(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
         raise SyntaxError('expected addition, found EOF')
@@ -227,7 +265,7 @@ def exp(ts: list[token], i: int) -> tuple[ast, int]:
     temp.append(lhs)
 
     while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '^':
-        rhs, i = disj(ts, i+1)
+        rhs, i = neg(ts, i+1)
         temp.append(rhs)
     t = len(temp)-1
     la = temp[t]
@@ -245,44 +283,6 @@ def exp(ts: list[token], i: int) -> tuple[ast, int]:
     #     lhs = ast('^', lhs, rhs)
 
     # return lhs, i
-
-def disj(ts: list[token], i: int) -> tuple[ast, int]:
-    """
-    >>> parse('true || false')
-    ast('||', ast('val', True), ast('val', False))
-    """
-    if i >= len(ts):
-        raise SyntaxError('expected conjunction, found EOF')
-
-    lhs, i = conj(ts, i)
-
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '||':
-        rhs, i = conj(ts, i+1)
-        lhs = ast('||', lhs, rhs)
-
-    return lhs, i
-
-def conj(ts: list[token], i: int) -> tuple[ast, int]:
-    """
-    >>> parse('true && false')
-    ast('&&', ast('val', True), ast('val', False))
-    >>> parse('!x && (a && !false)')
-    ast('&&', ast('!', ast('var', 'x')), ast('&&', ast('var', 'a'), ast('!', ast('val', False))))
-    >>> parse('!x && a && !false')
-    ast('&&', ast('&&', ast('!', ast('var', 'x')), ast('var', 'a')), ast('!', ast('val', False)))
-    >>> parse('x || !y && z')
-    ast('||', ast('var', 'x'), ast('&&', ast('!', ast('var', 'y')), ast('var', 'z')))
-    """
-    if i >= len(ts):
-        raise SyntaxError('expected conjunction, found EOF')
-
-    lhs, i = neg(ts, i)
-
-    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '&&':
-        rhs, i = neg(ts, i+1)
-        lhs = ast('&&', lhs, rhs)
-
-    return lhs, i
 
 def neg(ts: list[token], i: int) -> tuple[ast, int]:
     """
