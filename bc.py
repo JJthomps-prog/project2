@@ -486,7 +486,6 @@ def result(a: ast) -> float:
 
 while True:
     try:
-        print(parse('3 * 2 % 4'))
         user_input = input()
         output = ""
         if '/*' in user_input:
