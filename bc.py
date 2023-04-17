@@ -398,17 +398,22 @@ def result(a: ast) -> float:
 while True:
     try:
         user_input = input()
+        output = ""
         if re.match(r'^\s*print\s+\w*',user_input,re.IGNORECASE):
             string = re.sub(r"^\s*print\s+", "", user_input.rstrip(), re.IGNORECASE)
             test = string.split(",")
-            output = ""
             for i in range(len(test)):
                 temp = parse(test[i])
                 output += f"{result(temp)} "
-            print(output)
+            print(output.strip())
         elif user_input == '':
             continue
         else:
             result(parse(user_input))
+    except SyntaxError:
+        print(f'parse error')
+    except ZeroDivisionError:
+        output += f'divide by zero'
+        print(output.strip())
     except EOFError:
         break
