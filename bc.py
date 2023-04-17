@@ -75,9 +75,6 @@ def lex(s: str) -> list[token]:
         elif s[i:i+2] == '--':
             tokens.append(token('sym', '--'))
             i += 2
-        elif s[i] == '!':
-            tokens.append(token('sym', '!'))
-            i += 1
         elif s[i] == '(':
             tokens.append(token('sym', '('))
             i += 1
@@ -101,6 +98,27 @@ def lex(s: str) -> list[token]:
             i += 1
         elif s[i] == '^':
             tokens.append(token('sym', '^'))
+            i += 1
+        elif s[i:i+2] == '==':
+            tokens.append(token('sym', '=='))
+            i += 2
+        elif s[i:i+2] == '<=':
+            tokens.append(token('sym', '<='))
+            i += 2
+        elif s[i:i+2] == '>=':
+            tokens.append(token('sym', '>='))
+            i += 2
+        elif s[i:i+2] == '!=':
+            tokens.append(token('sym', '!='))
+            i += 2
+        elif s[i] == '<':
+            tokens.append(token('sym', '<'))
+            i += 1
+        elif s[i] == '>':
+            tokens.append(token('sym', '>'))
+            i += 1
+        elif s[i] == '!':
+            tokens.append(token('sym', '!'))
             i += 1
         elif s[i:i+2] == '||':
             tokens.append(token('sym', '||'))
@@ -186,12 +204,84 @@ def conj(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
         raise SyntaxError('expected conjunction, found EOF')
 
-    lhs, i = add(ts, i)
+    lhs, i = is_equal(ts, i)
 
     while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '&&':
-        rhs, i = add(ts, i+1)
+        rhs, i = is_equal(ts, i+1)
         lhs = ast('&&', lhs, rhs)
 
+    return lhs, i
+
+def is_equal(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = is_eq_sm(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '==':
+        rhs, i = is_eq_sm(ts, i+1)
+        lhs = ast('==', lhs, rhs)
+
+    return lhs, i
+
+def is_eq_sm(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = is_eq_bg(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '<=':
+        rhs, i = is_eq_bg(ts, i+1)
+        lhs = ast('<=', lhs, rhs)
+
+    return lhs, i
+
+def is_eq_bg(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = is_n_e(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '>=':
+        rhs, i = is_n_e(ts, i+1)
+        lhs = ast('>=', lhs, rhs)
+
+    return lhs, i
+
+def is_n_e(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = is_sm(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '!=':
+        rhs, i = is_sm(ts, i+1)
+        lhs = ast('!=', lhs, rhs)
+
+    return lhs, i
+
+def is_sm(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = is_bg(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '<':
+        rhs, i = is_bg(ts, i+1)
+        lhs = ast('<', lhs, rhs)
+    
+    return lhs, i
+
+def is_bg(ts: list[token], i: int) -> tuple[ast, int]:
+    if i >= len(ts):
+        raise SyntaxError('expected conjunction, found EOF')
+
+    lhs, i = add(ts, i)
+
+    while i < len(ts) and ts[i].typ == 'sym' and ts[i].val == '>':
+        rhs, i = add(ts, i+1)
+        lhs = ast('>', lhs, rhs)
+    
     return lhs, i
 
 def add(ts: list[token], i: int) -> tuple[ast, int]:
@@ -345,7 +435,7 @@ def atom(ts: list[token], i: int) -> tuple[ast, int]:
 
 # INTERPRETER
 
-def interp(a: ast, env: set[str]) -> bool:
+def interp(a: ast) -> bool:
     """
     >>> interp(parse('x || y'), {'y'})
     True
@@ -353,15 +443,45 @@ def interp(a: ast, env: set[str]) -> bool:
     False
     """
     if a.typ == 'val':
+        if a.children[0]>=0:
+            return 1
+        else:
+            return 0
+    elif a.typ == 'var':
+        if var[a.children[0]]>=0:
+            return 1
+        else:
+            return 0
+    elif a.typ == '!':
+        return int(not interp(a.children[0]))
+    elif a.typ == '&&':
+        return interp(a.children[0]) and interp(a.children[1])
+    elif a.typ == '||':
+        return interp(a.children[0]) or interp(a.children[1])
+    elif a.typ == '-' and len(a.children) == 1:
+            return -0
+    
+    raise SyntaxError(f'unknown operation {a.typ}')
+
+def relation(a:ast) -> bool:
+    if a.typ == 'val':
         return a.children[0]
     elif a.typ == 'var':
-        return a.children[0] in env
-    elif a.typ == '!':
-        return not interp(a.children[0], env)
-    elif a.typ == '&&':
-        return interp(a.children[0], env) and interp(a.children[1], env)
-    elif a.typ == '||':
-        return interp(a.children[0], env) or interp(a.children[1], env)
+        return var[a.children[0]]
+    elif a.typ == '==':
+        return relation(a.children[0]) == relation(a.children[1])
+    elif a.typ == '<=':
+        return relation(a.children[0]) <= relation(a.children[1])
+    elif a.typ == '>=':
+        return relation(a.children[0]) >= relation(a.children[1])
+    elif a.typ == '!=':
+        return relation(a.children[0]) != relation(a.children[1])
+    elif a.typ == '>':
+        return relation(a.children[0]) > relation(a.children[1])
+    elif a.typ == '<':
+        return relation(a.children[0]) < relation(a.children[1])
+    elif a.typ == '-' and len(a.children) == 1:
+            return -result(a.children[0])
     
     raise SyntaxError(f'unknown operation {a.typ}')
 
@@ -397,6 +517,10 @@ def result(a: ast) -> float:
             return var[a.children[0]]
         else:
             raise SyntaxError(f'unknown operation {a.typ}')
+    elif a.typ in ['==','<=','>=','!=','>','<']:
+        return relation(a)
+    elif a.typ in ['&&','||','!']:
+        return interp(a)
 
 while True:
     try:
