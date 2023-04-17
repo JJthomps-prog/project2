@@ -408,5 +408,5 @@ while True:
             print(output)
         else:
             result(parse(user_input))
-    except EOFError:
-        break
+    except:
+        continue
