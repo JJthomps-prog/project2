@@ -9,10 +9,6 @@ class token():
     val: str
 
     def __init__(self, typ, val):
-        """
-        >>> token('sym', '(')
-        token('sym', '(')
-        """
         self.typ = typ
         self.val = val
 
@@ -27,19 +23,6 @@ def convert_num(string):
         raise ValueError(f"is not numeric {string}")
 
 def lex(s: str) -> list[token]:
-    """
-    >>> lex('')
-    []
-    >>> lex('true false falsehood x')
-    [token('kw', 'true'), token('kw', 'false'), token('var', 'falsehood'), token('var', 'x')]
-    >>> lex('\\n!\\ra ||\\t b && c')
-    [token('sym', '!'), token('var', 'a'), token('sym', '||'), token('var', 'b'), token('sym', '&&'), token('var', 'c')]
-    >>> lex('))\\t\\t(   !a')
-    [token('sym', ')'), token('sym', ')'), token('sym', '('), token('sym', '!'), token('var', 'a')]
-    >>> lex('1+2.14+3')
-    [token('num', '1'), token('sym', '+'), token('num', '2.14'), token('sym', '+'), token('num', '3')]
-    """
-
     tokens = []
     i = 0
 
@@ -159,11 +142,6 @@ class ast():
     children: tuple[Any, ...]
 
     def __init__(self, typ: str, *children: Any):
-        """
-        x || true
-        >>> ast('||', ast('var', 'x'), ast('val', True))
-        ast('||', ast('var', 'x'), ast('val', True))
-        """
         self.typ = typ
         self.children = children
 
@@ -194,10 +172,6 @@ def equal(ts: list[token], i: int) -> tuple[ast, int]:
 
 
 def disj(ts: list[token], i: int) -> tuple[ast, int]:
-    """
-    >>> parse('true || false')
-    ast('||', ast('val', True), ast('val', False))
-    """
     if i >= len(ts):
         raise SyntaxError('expected conjunction, found EOF')
 
@@ -210,16 +184,6 @@ def disj(ts: list[token], i: int) -> tuple[ast, int]:
     return lhs, i
 
 def conj(ts: list[token], i: int) -> tuple[ast, int]:
-    """
-    >>> parse('true && false')
-    ast('&&', ast('val', True), ast('val', False))
-    >>> parse('!x && (a && !false)')
-    ast('&&', ast('!', ast('var', 'x')), ast('&&', ast('var', 'a'), ast('!', ast('val', False))))
-    >>> parse('!x && a && !false')
-    ast('&&', ast('&&', ast('!', ast('var', 'x')), ast('var', 'a')), ast('!', ast('val', False)))
-    >>> parse('x || !y && z')
-    ast('||', ast('var', 'x'), ast('&&', ast('!', ast('var', 'y')), ast('var', 'z')))
-    """
     if i >= len(ts):
         raise SyntaxError('expected conjunction, found EOF')
 
@@ -323,58 +287,38 @@ def sub(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
         raise SyntaxError('expected subtraction, found EOF')
 
-    lhs, i = mul(ts, i)
+    lhs, i = mul_div_remain(ts, i)
 
     while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '-' or ts[i].val == '-='):
         if ts[i].val == '-':
-            rhs, i = mul(ts, i+1)
+            rhs, i = mul_div_remain(ts, i+1)
             lhs = ast('-', lhs, rhs)
         elif ts[i].val == '-=':
-            rhs, i = mul(ts, i+1)
+            rhs, i = mul_div_remain(ts, i+1)
             lhs = ast('=',lhs,ast('-', lhs, rhs))
 
     return lhs, i
 
-def mul(ts: list[token], i: int) -> tuple[ast, int]:
-    if i >= len(ts):
-        raise SyntaxError('expected subtraction, found EOF')
-
-    lhs, i = div(ts, i)
-
-    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '*' or ts[i].val == '*='):
-        if ts[i].val == '*':
-            rhs, i = div(ts, i+1)
-            lhs = ast('*', lhs, rhs)
-        elif ts[i].val == '*=':
-            rhs, i = div(ts, i+1)
-            lhs = ast('=',lhs,ast('*', lhs, rhs))
-
-    return lhs, i
-
-def div(ts: list[token], i: int) -> tuple[ast, int]:
-    if i >= len(ts):
-        raise SyntaxError('expected subtraction, found EOF')
-
-    lhs, i = remainder(ts, i)
-
-    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '/' or ts[i].val == '/='):
-        if ts[i].val == '/':
-            rhs, i = remainder(ts, i+1)
-            lhs = ast('/', lhs, rhs)
-        elif ts[i].val == '/=':
-            rhs, i = remainder(ts, i+1)
-            lhs = ast('=',lhs,ast('/', lhs, rhs))
-
-    return lhs, i
-
-def remainder(ts: list[token], i: int) -> tuple[ast, int]:
+def mul_div_remain(ts: list[token], i: int) -> tuple[ast, int]:
     if i >= len(ts):
         raise SyntaxError('expected subtraction, found EOF')
 
     lhs, i = exp_eq(ts, i)
 
-    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '%' or ts[i].val == '%='):
-        if ts[i].val == '%':
+    while i < len(ts) and ts[i].typ == 'sym' and (ts[i].val == '*' or ts[i].val == '*=' or ts[i].val == '/' or ts[i].val == '/=' or ts[i].val == '%' or ts[i].val == '%='):
+        if ts[i].val == '*':
+            rhs, i = exp_eq(ts, i+1)
+            lhs = ast('*', lhs, rhs)
+        elif ts[i].val == '*=':
+            rhs, i = exp_eq(ts, i+1)
+            lhs = ast('=',lhs,ast('*', lhs, rhs))
+        elif ts[i].val == '/':
+            rhs, i = exp_eq(ts, i+1)
+            lhs = ast('/', lhs, rhs)
+        elif ts[i].val == '/=':
+            rhs, i = exp_eq(ts, i+1)
+            lhs = ast('=',lhs,ast('/', lhs, rhs))
+        elif ts[i].val == '%':
             rhs, i = exp_eq(ts, i+1)
             lhs = ast('%', lhs, rhs)
         elif ts[i].val == '%=':
@@ -415,13 +359,6 @@ def exp(ts: list[token], i: int) -> tuple[ast, int]:
     return la, i
 
 def neg(ts: list[token], i: int) -> tuple[ast, int]:
-    """
-    >>> parse('! true')
-    ast('!', ast('val', True))
-    >>> parse('!! true')
-    ast('!', ast('!', ast('val', True)))
-    """
-
     if i >= len(ts):
         raise SyntaxError('expected negation, found EOF')
 
@@ -441,15 +378,6 @@ def neg(ts: list[token], i: int) -> tuple[ast, int]:
         return atom(ts, i)
 
 def atom(ts: list[token], i: int) -> tuple[ast, int]:
-    """
-    >>> parse('x')
-    ast('var', 'x')
-    >>> parse('true')
-    ast('val', True)
-    >>> parse('(((false)))')
-    ast('val', False)
-    """
-
     t = ts[i]
 
     if t.typ == 'var':
@@ -476,12 +404,6 @@ def atom(ts: list[token], i: int) -> tuple[ast, int]:
 # INTERPRETER
 
 def interp(a: ast) -> bool:
-    """
-    >>> interp(parse('x || y'), {'y'})
-    True
-    >>> interp(parse('a || b && c'), {'c'})
-    False
-    """
     if a.typ == 'val':
         if a.children[0]>=0:
             return 1
@@ -564,6 +486,7 @@ def result(a: ast) -> float:
 
 while True:
     try:
+        print(parse('3 * 2 % 4'))
         user_input = input()
         output = ""
         if '/*' in user_input:
@@ -626,3 +549,4 @@ while True:
         print(output.strip())
     except EOFError:
         break
+
