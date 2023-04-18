@@ -72,11 +72,11 @@ print !1 && 2
 ## Comments
 print 1 #asdhjaoisjdoasjdojasodjasodij  
 1.0  
-'''
+```
 print 1/*aosijdaosijdoasijdoasijdo  
 aojsidaosijdoasijdoaisjd   
 aishduaisdjaisojdaoisjdo*/print 1  
-'''
+```
 1.0 1.0  
 # any bugs or issues you could not resolve
 No
