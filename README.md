@@ -6,6 +6,7 @@ https://github.com/JJthomps-prog/project2.git
 40 hours
 # a description of how you tested your code
 ## Low-level parsing test
+```
 print 1+2+3  6.0   
 print 1+2*3  7.0    
 print (1+2)*3  9.0  
@@ -22,20 +23,30 @@ print 10 % 3 + 2 * 5  11
 print 2 ^ 3 ^ 2  512  
 print -6 / 2  -3  
 print 5 * -2 + 3 * (4 + 1)  5  
+```
+```
 x = 2
 y = 3
 z = x + y * 2 % 4
 print x,y,z
+```
 2.0 3.0 2.0
+```
 print ++x 3.0
 print --x 2.0  
+```
 ## Evaluation
+```
 print x,y 0.0 0.0  
 print 1,2 1.0 2.0 
+```
 ## Errors
+```
 print 1 + 2 / parser error  
 print 0 / 1, 1 / 0.0 divide by zero  
+```
 ## Op-equals
+```
 x = 2  
 y = 3   
 x += 2   
@@ -44,33 +55,42 @@ x *= y
 y /= x  
 x ^= y  
 x %= 1  
-print x,y  
+print x,y 
+```
 0.681792830507429 0.25
 ## Relational operations
+```
 print 1<=2  
 print 2>=3  
 print -3<6  
 print 6>9  
 print 1==1  
 print 1!=1  
+```
 1 0 1 0 1 0  
+```
 x = -3 y = 1
 print x < y  
 print x > y  
 print x == y  
 print x <= y  
 print  x >= y 
-print  x != y  
+print  x != y 
+```
 1 0 0 1 0 1 
 ## Boolean operations
+```
 print 1 && 0  
 print 1 && -2  
 print 0 && 1 && -2  
 print 0 && 1 || -2  
 print !1 && 2  
+```
 0 1 0 1 0  
 ## Comments
+```
 print 1 #asdhjaoisjdoasjdojasodjasodij  
+```
 1.0  
 ```
 print 1/*aosijdaosijdoasijdoasijdo  
