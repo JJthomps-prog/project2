@@ -32,8 +32,8 @@ print x,y,z
 ```
 2.0 3.0 2.0
 ```
-print ++x 3.0
-print --x 2.0  
+print ++x {'x':3.0}
+print --x {'x':2.0}  
 ```
 ## Evaluation
 ```
