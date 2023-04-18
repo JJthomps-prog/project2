@@ -69,6 +69,13 @@ print 0 && 1 && -2
 print 0 && 1 || -2  
 print !1 && 2  
 0 1 0 1 0  
+## Comments
+print 1 #asdhjaoisjdoasjdojasodjasodij  
+1.0  
+print 1/*aosijdaosijdoasijdoasijdo  
+aojsidaosijdoasijdoaisjd   
+aishduaisdjaisojdaoisjdo*/print 1  
+1.0 1.0  
 # any bugs or issues you could not resolve
 No
 # an example of a difficult issue or bug and how you resolved
