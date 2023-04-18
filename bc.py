@@ -405,12 +405,12 @@ def atom(ts: list[token], i: int) -> tuple[ast, int]:
 
 def interp(a: ast) -> bool:
     if a.typ == 'val':
-        if a.children[0]>=0:
+        if a.children[0]!=0:
             return 1
         else:
             return 0
     elif a.typ == 'var':
-        if var[a.children[0]]>=0:
+        if var[a.children[0]]!=0:
             return 1
         else:
             return 0
@@ -421,7 +421,7 @@ def interp(a: ast) -> bool:
     elif a.typ == '||':
         return interp(a.children[0]) or interp(a.children[1])
     elif a.typ == '-' and len(a.children) == 1:
-            return -0
+            return 1
     
     raise SyntaxError(f'unknown operation {a.typ}')
 
@@ -431,17 +431,17 @@ def relation(a:ast) -> bool:
     elif a.typ == 'var':
         return var[a.children[0]]
     elif a.typ == '==':
-        return relation(a.children[0]) == relation(a.children[1])
+        return int(relation(a.children[0]) == relation(a.children[1]))
     elif a.typ == '<=':
-        return relation(a.children[0]) <= relation(a.children[1])
+        return int(relation(a.children[0]) <= relation(a.children[1]))
     elif a.typ == '>=':
-        return relation(a.children[0]) >= relation(a.children[1])
+        return int(relation(a.children[0]) >= relation(a.children[1]))
     elif a.typ == '!=':
-        return relation(a.children[0]) != relation(a.children[1])
+        return int(relation(a.children[0]) != relation(a.children[1]))
     elif a.typ == '>':
-        return relation(a.children[0]) > relation(a.children[1])
+        return int(relation(a.children[0]) > relation(a.children[1]))
     elif a.typ == '<':
-        return relation(a.children[0]) < relation(a.children[1])
+        return int(relation(a.children[0]) < relation(a.children[1]))
     elif a.typ == '-' and len(a.children) == 1:
             return -result(a.children[0])
     
