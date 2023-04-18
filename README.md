@@ -1,5 +1,12 @@
 Yuehan Qin yqin18@stevens.edu, Rudresh Mahesh Jetani rjetani@stevens.edu
 # project2
+# the URL of your public GitHub repo
+
+# an estimate of how many hours you spent on the project
+# a description of how you tested your code
+# any bugs or issues you could not resolve
+# an example of a difficult issue or bug and how you resolved
+# a list of the four extensions you’ve chosen to implement
 # Low-level parsing test
 print 1+2+3  6.0   
 print 1+2*3  7.0    
