@@ -19,4 +19,47 @@ print 5 * -2 + 3 * (4 + 1)  5
 x = 2
 y = 3
 z = x + y * 2 % 4
-print z
+print x,y,z
+2.0 3.0 2.0
+print ++x 3.0
+print --x 2.0  
+# Evaluation
+print x,y 0.0 0.0  
+print 1,2 1.0 2.0 
+# Errors
+print 1 + 2 / parser error  
+print 0 / 1, 1 / 0.0 divide by zero  
+# Op-equals
+x = 2  
+y = 3   
+x += 2   
+y -= 1  
+x *= y  
+y /= x  
+x ^= y  
+x %= 1  
+print x,y  
+0.681792830507429 0.25
+# Relational operations
+print 1<=2  
+print 2>=3  
+print -3<6  
+print 6>9  
+print 1==1  
+print 1!=1  
+1 0 1 0 1 0  
+x = -3 y = 1
+print x < y  
+print x > y  
+print x == y  
+print x <= y  
+print  x >= y 
+print  x != y  
+1 0 0 1 0 1 
+# Boolean operations
+print 1 && 0  
+print 1 && -2  
+print 0 && 1 && -2  
+print 0 && 1 || -2  
+print !1 && 2  
+0 1 0 1 0  
